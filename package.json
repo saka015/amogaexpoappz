@@ -6,6 +6,7 @@
 		"dev": "expo start",
 		"web": "expo start --web",
 		"android": "expo run:android",
+		"vercel-build": "npm install --legacy-peer-deps && expo export -p web",
 		"ios": "expo run:ios",
 		"lint": "eslint . --fix",
 		"generate-colors": "node ./scripts/generate-colors.js && eslint ./constants/colors.ts --fix",
