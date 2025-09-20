@@ -17,9 +17,9 @@
 		"vercel-build": "npm install --legacy-peer-deps && next build"
 	},
 	"dependencies": {
-		"@ai-sdk/google": "^1.2.23",
-		"@ai-sdk/openai": "^1.3.26",
-		"@ai-sdk/react": "^1.2.14",
+		"@ai-sdk/google": "^1.2.22",
+		"@ai-sdk/openai": "^1.3.23",
+		"@ai-sdk/react": "^1.2.12",
 		"@expo-google-fonts/geist": "^0.4.0",
 		"@expo/html-elements": "^0.12.5",
 		"@gorhom/bottom-sheet": "^5.1.8",
