@@ -13,8 +13,7 @@
   "start": "node server.js",
   "buildpre": "expo prebuild --platform android",
   "deploy:android": "eas build --platform android --profile preview",
-  "deploy:androidtest": "eas build --platform android --profile build-and-maestro-test",
-  "vercel-build": "npm install --legacy-peer-deps && expo export -p web"
+  "deploy:androidtest": "eas build --platform android --profile build-and-maestro-test"
 },
 	"dependencies": {
 		"@ai-sdk/google": "^1.2.22",
