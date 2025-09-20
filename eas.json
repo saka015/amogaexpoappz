@@ -1,0 +1,49 @@
+{
+	"cli": {
+		"version": ">= 16.12.0",
+		"appVersionSource": "remote"
+	},
+	"build": {
+		"development": {
+			"developmentClient": true,
+			"distribution": "internal",
+			"env": {
+				"STAGE": "development"
+			}
+		},
+		"preview": {
+			"distribution": "internal",
+			"env": {
+				"STAGE": "preview"
+			}
+		},
+		"production": {
+			"android": {
+				"buildType": "apk"
+			},
+			"autoIncrement": true,
+			"env": {
+				"STAGE": "production"
+			}
+		},
+		"build-and-maestro-test": {
+			"withoutCredentials": true,
+			"config": "build-and-maestro-test.yml",
+			"android": {
+				"buildType": "apk",
+				"image": "latest"
+			},
+			"ios": {
+				"simulator": true,
+				"image": "latest"
+			},
+			"env": {
+				"STAGE": "preview",
+				"EXPO_PUBLIC_API_URL": "https://demo.stor.chat"
+			}
+		}
+	},
+	"submit": {
+		"production": {}
+	}
+}

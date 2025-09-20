@@ -1,0 +1,6 @@
+appId: "ai.stor.chat"
+env:
+  CLIENT_LINK_BASE: storchat://
+---
+- launchApp
+# - openLink: ${CLIENT_LINK_BASE}

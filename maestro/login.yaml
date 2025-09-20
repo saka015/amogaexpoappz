@@ -1,0 +1,117 @@
+appId: "ai.stor.chat"
+env:
+    TESTING_EMAIL: testing@morr.biz
+    TESTING_EMAIL_PASSWORD: testing@morr.biz
+    IMAP_PASSWORD: FZLMoa77[G^-p9R4
+    IMAP_HOST: mail.morr.biz
+    IMAP_PORT: 993
+    CLEANUP_TASKS: "deleteAuthUser,clearInbox"
+    HELPER_API_HOST: https://app.stor.chat
+    MAESTRO_SECRET: "QF6XUR6Q2LGyDSOn"
+    MAESTRO_DRIVER_STARTUP_TIMEOUT: 120000
+---
+- clearState
+- runFlow: helper/openApp.yml
+- assertVisible: "Grow Store"
+
+# --- PART 1: LOGIN WITH EMAIL & PASSWORD ---
+
+- tapOn:
+    below: "Email Address"
+    index: 0
+- inputText: ${TESTING_EMAIL}
+
+- hideKeyboard
+
+- tapOn:
+    below: "Password"
+- inputText: ${TESTING_EMAIL_PASSWORD}
+
+- hideKeyboard
+
+- tapOn: 
+    # above: "OR"
+    index: 0
+    below: "Password"
+    text: ".*Login.*" 
+
+- waitForAnimationToEnd
+
+- assertVisible: ".*Welcome back.*" 
+- assertVisible: "Available pages"
+- assertVisible:
+    text: "[1-9]\\d* items"
+
+# --- PART 2: LOGOUT FROM THE APP ---
+
+# - tapOn:
+#     point: "95%,6%"
+# - tapOn: 
+#     # above: "OR"
+#     index: 1
+#     below: "Menu"
+- tapOn:
+    text: "￼"
+    index: 0
+
+- tapOn: ".*Log out.*"
+
+- waitForAnimationToEnd
+
+- assertVisible: "Grow Store"
+
+# --- PART 3: LOGIN WITH EMAIL & OTP ---
+
+- scroll
+    # direction: DOWN
+    # speed: SLOW
+    # amount: 50%
+
+- tapOn:
+    above: "OTP Verification"
+- inputText: ${TESTING_EMAIL}
+
+- hideKeyboard
+
+- tapOn: 
+    # above: "OR"
+    index: 0
+    below: "OTP Verification"
+    text: ".*Login.*"
+
+- waitForAnimationToEnd
+
+- extendedWaitUntil: 
+     visible: "Enter OTP"
+     timeout: 10000
+
+- extendedWaitUntil: 
+     visible: ThisTextWillNeverAppear
+     optional: true
+     timeout: 10000
+
+- runScript:
+    file: helper/getOtp.js
+
+# Step 2: Wait for OTP screen
+- assertVisible: "Enter OTP"
+
+- tapOn:
+    below: ".*Verification Code.*"
+- inputText: ${output.otp}
+
+- hideKeyboard
+
+- tapOn: ".*Sign In.*"
+
+- waitForAnimationToEnd
+
+# Step 5: Verify login
+- extendedWaitUntil:
+    visible: ".*Welcome back.*"
+    timeout: 10000
+
+- assertVisible: "Available pages"
+
+- assertVisible:
+    text: "[1-9]\\d* items"

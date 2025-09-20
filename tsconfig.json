@@ -1,0 +1,23 @@
+{
+	"extends": "expo/tsconfig.base",
+	"compilerOptions": {
+		"jsx": "react-jsx",
+		"strict": true,
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["./*"]
+		},
+		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true,
+		"strictPropertyInitialization": false
+	},
+	"include": [
+		"**/*.ts",
+		"**/*.tsx",
+		".expo/types/**/*.ts",
+		"expo-env.d.ts",
+		"nativewind-env.d.ts",
+		"scripts/generate-colors.js", 
+		"server.js"
+	]
+}
