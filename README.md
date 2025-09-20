@@ -1,1 +1,1 @@
-# Expo Supabase# amogaexpoappz
+# Expo Supabase

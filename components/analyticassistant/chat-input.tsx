@@ -11,7 +11,8 @@ import {
   TextInput,
 } from "react-native";
 import { Paperclip, ArrowUp, X } from "lucide-react-native";
-import Animated, {
+import Animated,
+{
   useAnimatedStyle,
   useAnimatedKeyboard,
   withSpring,
@@ -41,8 +42,8 @@ type Props = {
   handleTextSubmitLogic: (message: string) => void;
   scrollViewRef: React.RefObject<ScrollView>;
   focusOnMount?: boolean;
-  requestStatus: "error" | "submitted" | "streaming" | "ready"
-  settings: any
+  requestStatus: "error" | "submitted" | "streaming" | "ready";
+  settings: any;
 };
 
 interface SelectedImagesProps {
@@ -55,7 +56,7 @@ interface ImageItemProps {
   onRemove: (uri: string) => void;
 }
 
-const modelsWithAudioSupport = ['gemini-1.5-flash', 'gemini-1.5-pro'];
+const modelsWithAudioSupport = ["gemini-1.5-flash", "gemini-1.5-pro"];
 
 const ImageItem = ({ uri, onRemove }: ImageItemProps) => {
   const [isLoading, setIsLoading] = useState(true);
@@ -81,7 +82,10 @@ const ImageItem = ({ uri, onRemove }: ImageItemProps) => {
           onLoadEnd={() => setTimeout(() => setIsLoading(false), 2000)}
         />
         {isLoading && (
-          <Animated.View className="h-[55px] w-[55px] items-center justify-center rounded-md bg-gray-300 dark:bg-gray-600" style={{ position: "absolute", top: 0, left: 0 }}>
+          <Animated.View
+            className="h-[55px] w-[55px] items-center justify-center rounded-md bg-gray-300 dark:bg-gray-600"
+            style={{ position: "absolute", top: 0, left: 0 }}
+          >
             <ActivityIndicator size="small" color="white" />
           </Animated.View>
         )}
@@ -132,19 +136,32 @@ const SelectedImages = ({ uris, onRemove }: SelectedImagesProps) => {
 
 export const ChatInput = forwardRef<TextInput, Props>(
   (
-    { input, onChangeText, onSubmit, handleAudioSubmit, handleTextSubmitLogic, scrollViewRef, focusOnMount = false, requestStatus, settings },
+    {
+      input,
+      onChangeText,
+      onSubmit,
+      handleAudioSubmit,
+      handleTextSubmitLogic,
+      scrollViewRef,
+      focusOnMount = false,
+      requestStatus,
+      settings,
+    },
     ref,
   ) => {
-    const { session } = useAuth()
+    const { session } = useAuth();
     const { bottom } = useSafeAreaInsets();
     const keyboard = useAnimatedKeyboard();
     const { pickImage } = useImagePicker();
     const { selectedImageUris, addImageUri, removeImageUri } = useStore();
 
     const [isTranscribing, setIsTranscribing] = useState(false);
-    const [recordMode, setRecordMode] = useState<'direct' | 'transcribe'>('transcribe');
+    const [recordMode, setRecordMode] = useState<"direct" | "transcribe">(
+      "transcribe",
+    );
 
-    const { isRecording, startRecording, stopRecording, getAudioAsBase64 } = useAudioRecorder();
+    const { isRecording, startRecording, stopRecording, getAudioAsBase64 } =
+      useAudioRecorder();
 
     useEffect(() => {
       if (focusOnMount) {
@@ -192,7 +209,7 @@ export const ChatInput = forwardRef<TextInput, Props>(
 
     // --- Determine if the mic button should be shown ---
     const showMicButton = useMemo(() => {
-      return true
+      return true;
       return modelsWithAudioSupport.includes(settings?.model);
     }, [settings]);
 
@@ -202,11 +219,10 @@ export const ChatInput = forwardRef<TextInput, Props>(
         if (recordingResult) {
           const audioBase64 = await getAudioAsBase64(recordingResult.uri);
           if (audioBase64) {
-            if (recordMode === 'direct') {
-              handleAudioSubmit(audioBase64, recordingResult.mimeType)
-            }
-            else {
-              await handleTranscribe(audioBase64, recordingResult.mimeType)
+            if (recordMode === "direct") {
+              handleAudioSubmit(audioBase64, recordingResult.mimeType);
+            } else {
+              await handleTranscribe(audioBase64, recordingResult.mimeType);
             }
           }
         }
@@ -218,19 +234,22 @@ export const ChatInput = forwardRef<TextInput, Props>(
     const handleTranscribe = async (audioBase64: string, mimeType: string) => {
       setIsTranscribing(true);
       try {
-        const res = await expoFetchWithAuth(session)(generateAPIUrl('/api/analyticassistant/transcribe'), {
-          method: 'POST',
-          body: JSON.stringify({ audioBase64, mimeType }),
-        });
+        const res = await expoFetchWithAuth(session)(
+          generateAPIUrl("/api/analyticassistant/transcribe"),
+          {
+            method: "POST",
+            body: JSON.stringify({ audioBase64, mimeType }),
+          },
+        );
 
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
-        console.log("data", data)
+        console.log("data", data);
         // onChangeText(data?.text || '');
         if (data?.transcription) {
-          handleTextSubmitLogic(data?.transcription)
+          handleTextSubmitLogic(data?.transcription);
         } else {
-          throw new Error("Empty")
+          throw new Error("Empty");
         }
         handleApiSuccess("Audio transcribed!");
       } catch (error: any) {
@@ -241,7 +260,7 @@ export const ChatInput = forwardRef<TextInput, Props>(
     };
 
     const toggleRecordMode = () => {
-      setRecordMode(prev => (prev === 'direct' ? 'transcribe' : 'direct'));
+      setRecordMode((prev) => (prev === "direct" ? "transcribe" : "direct"));
     };
 
     return (
@@ -260,18 +279,30 @@ export const ChatInput = forwardRef<TextInput, Props>(
                 placeholder="..."
                 value={input}
                 onChangeText={onChangeText}
+                onSubmitEditing={() => {
+                  onSubmit();
+                  Keyboard.dismiss();
+                }}
                 // multiline
                 // style={{ paddingRight: 0 }}
               />
-              <View className="flex flex-row absolute right-3 top-1/2 -translate-y-1/2 items-center gap-2" >
+              <View className="flex flex-row absolute right-3 top-1/2 -translate-y-1/2 items-center gap-2">
                 {showMicButton && (
                   <TouchableOpacity
                     onPress={onMicPress}
-                    disabled={requestStatus !== 'ready' && !isRecording}
+                    disabled={requestStatus !== "ready" && !isRecording}
                     style={{ marginRight: 4, marginLeft: 4 }}
                   >
-                    <View className={`p-2 rounded-full ${isRecording ? 'bg-red-500' : 'bg-primary'}`}>
-                      <LucideIcon name="Mic" size={18} className="text-primary-foreground" />
+                    <View
+                      className={`p-2 rounded-full ${
+                        isRecording ? "bg-red-500" : "bg-primary"
+                      }`}
+                    >
+                      <LucideIcon
+                        name="Mic"
+                        size={18}
+                        className="text-primary-foreground"
+                      />
                     </View>
                   </TouchableOpacity>
                 )}
@@ -281,7 +312,10 @@ export const ChatInput = forwardRef<TextInput, Props>(
                     onSubmit();
                     Keyboard.dismiss();
                   }}
-                  disabled={(requestStatus !== "ready" && requestStatus !== "error") || input.length === 0}
+                  disabled={
+                    (requestStatus !== "ready" && requestStatus !== "error") ||
+                    input.length === 0
+                  }
                   style={{ marginLeft: 2 }}
                 >
                   <LucideIcon name="Send" size={18} className="text-secondary" />

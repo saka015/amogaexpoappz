@@ -80,7 +80,7 @@ const CustomerForm = ({ control, errors }: { control: any, errors: any }) => (
 
 export default function CustomersPage() {
     const router = useRouter()
-    const { session, storeSettings } = useAuth();
+    const { session, storeSettings, isFetchingStoreSettings } = useAuth();
     const [customers, setCustomers] = useState<Customer[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isInitialLoading, setIsInitialLoading] = useState(true);
@@ -101,6 +101,7 @@ export default function CustomersPage() {
 
     // Memoize the API client so it's not recreated on every render
     const wooApiClient = useMemo(() => {
+        if (isFetchingStoreSettings) return null
         if (!storeSettings?.woocommerce?.url || !storeSettings?.woocommerce?.consumerKey || !storeSettings?.woocommerce?.consumerSecret) {
             showDialog({
                 title: 'Configure WooCommerce Settings',
@@ -120,7 +121,7 @@ export default function CustomersPage() {
             return new WooCommerceAPIClient(storeSettings.woocommerce);
         }
         return null;
-    }, [storeSettings]);
+    }, [storeSettings, isFetchingStoreSettings]);
 
     useEffect(() => {
         setTitle("Customers");

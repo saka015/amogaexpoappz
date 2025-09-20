@@ -14,6 +14,24 @@ import * as TaskManager from "expo-task-manager";
 import { NotificationProvider } from "@/context/notification-context";
 import { GlobalDialog } from "@/components/GlobalDialog";
 import { View, StyleSheet } from "react-native";
+import * as Sentry from '@sentry/react-native';
+import config from "@/config";
+
+Sentry.init({
+	dsn: 'https://fee585ea7bd272a38e75dea214a87894@o4510030297694208.ingest.de.sentry.io/4510030302150736',
+	environment: config.STAGE,
+	// Adds more context data to events (IP address, cookies, user, etc.)
+	// For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
+	sendDefaultPii: true,
+
+	// Configure Session Replay
+	replaysSessionSampleRate: 0.1,
+	replaysOnErrorSampleRate: 1,
+	integrations: [Sentry.mobileReplayIntegration(), Sentry.feedbackIntegration()],
+
+	// uncomment the line below to enable Spotlight (https://spotlightjs.com)
+	// spotlight: __DEV__,
+});
 
 Notifications.setNotificationHandler({
 	handleNotification: async () => ({
@@ -40,7 +58,7 @@ TaskManager.defineTask(
 
 Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK);
 
-export default function AppLayout() {
+export default Sentry.wrap(function AppLayout() {
 	const { colorScheme } = useColorScheme();
 
 	return (
@@ -62,11 +80,11 @@ export default function AppLayout() {
 			</GestureHandlerRootView>
 		</>
 	);
-}
+});
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: 'hsl(var(--background))',
-  },
+	container: {
+		flex: 1,
+		backgroundColor: 'hsl(var(--background))',
+	},
 });

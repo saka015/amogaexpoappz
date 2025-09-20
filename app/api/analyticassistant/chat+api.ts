@@ -8,6 +8,7 @@ import { convertToUIMessages, flattenResponseMessagesToUIMessage, generateTitleF
 import { v4 as uuidv4 } from 'uuid';
 import { getServerAuth } from '@/lib/server-utils';
 import { calculateAICost } from '@/lib/ai/utils';
+import config from '@/config';
 
 export function selectModel(settings: any) {
     const provider = settings?.provider;
@@ -339,10 +340,16 @@ ${wooAPI ? "WooCommerce API is configured. START FETCHING DATA AND CREATING VISU
                     console.error('🔴 Error inside onFinish callback:', error);
                 }
             },
-            // experimental_telemetry: {
-            //     isEnabled: true,
-            //     functionId: 'stream-text',
-            // },
+            experimental_telemetry: {
+                isEnabled: true,
+                functionId: 'chat-stream-text',
+                metadata: {
+                    stage: config.STAGE,
+                    userId: userInfo?.user_id,
+                    userEmail: userInfo?.email || "",
+                    chatId: chatId,
+                },
+            },
         });
 
         return result.toDataStreamResponse({

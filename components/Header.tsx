@@ -19,9 +19,10 @@ export function Header() {
     const { userCatalog, signOut } = useAuth();
 
     // Ensure names are strings and encode for URL
-    const firstName = (userCatalog?.first_name || "f").toString();
-    const lastName = (userCatalog?.last_name || "l").toString();
-    const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName)}+${encodeURIComponent(lastName)}&background=0D8ABC&color=fff`;
+    const fullName = (userCatalog?.first_name || "fl").toString().trim();
+    const [firstName, lastNameRaw] = fullName.split(" ");
+    const lastName = lastNameRaw ? lastNameRaw : firstName.slice(1, 3);
+    const avatarUrl = userCatalog?.profile_pic_url;
     const initials = `${firstName[0]}${lastName[0]}`.toUpperCase();
     const [imageError, setImageError] = React.useState(false);
     const triggerRef =
@@ -51,7 +52,7 @@ export function Header() {
                             <Text className="flex"><MaterialIcons name="arrow-back" size={16} /></Text>
                         </Pressable>
                     )}
-                    {imageError ? (
+                    {(imageError || !userCatalog?.profile_pic_url) ? (
                         <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#0D8ABC', alignItems: 'center', justifyContent: 'center' }}>
                             <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>{initials}</Text>
                         </View>

@@ -10,11 +10,11 @@ export const WelcomeMessage = () => {
       <LucideIcon name="ChartNoAxesColumnIncreasing" size={48} className="mb-4 text-primary" />
 
       <Text className="text-2xl font-bold text-center mb-2">
-        WooCommerce Analytics Agent
+        E commerce Analytic AI
       </Text>
 
       <Text className="text-center leading-6 mb-6">
-        I'm ready to analyze your store's data. I can fetch information and create visualizations for you instantly.
+        Assistant Chat.
       </Text>
 
       <View className="w-full bg-card p-4 rounded-lg border">

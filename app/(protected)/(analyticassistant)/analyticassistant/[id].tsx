@@ -47,7 +47,7 @@ type WeatherResult = {
 
 const AnalyticAssistant = () => {
   const { id: routeId } = useLocalSearchParams<{ id: string }>();
-  const { session, storeSettings } = useAuth()
+  const { session, storeSettings, isFetchingStoreSettings } = useAuth()
   const { themeClass } = useTheme()
   const inputRef = useRef<TextInput>(null);
 
@@ -80,6 +80,7 @@ const AnalyticAssistant = () => {
   const router = useRouter()
 
   useEffect(() => {
+    if (isFetchingStoreSettings) return
     if (!storeSettings?.ai?.provider && !storeSettings?.ai?.apiKey) {
       showDialog({
         title: 'Configure AI Settings',
@@ -126,7 +127,7 @@ const AnalyticAssistant = () => {
     if (routeId === "new") {
       setNewChatId(Crypto.randomUUID())
     }
-  }, [storeSettings]);
+  }, [storeSettings, isFetchingStoreSettings]);
 
   const {
     messages,
@@ -142,7 +143,8 @@ const AnalyticAssistant = () => {
     stop
   } = useChat({
     body: {
-      chatId: chatId?.id,
+      // chatId: chatId?.id,
+      chatId: (newChatIdRef.current || chatId?.id || newChatId || routeId),
       settings
     },
     maxSteps: 25,
@@ -173,7 +175,8 @@ const AnalyticAssistant = () => {
           toolInvocations: message.toolInvocations,
           created_user_id: (session?.user as any).user_id,
           // chatId: (routeId && routeId !== "new" ? routeId : (chatId?.id || currentChatId || newChatId))
-          chatId: (newChatIdRef.current || chatId?.id || newChatId || routeId)
+          // chatId:  (newChatIdRef.current || chatId?.id || routeId || newChatId)
+          chatId: (routeId && routeId !== "new" ? routeId : (newChatIdRef.current || chatId?.id || newChatId))
         }]
         console.log("messageToSave", messagesToSave)
         try {
@@ -203,8 +206,9 @@ const AnalyticAssistant = () => {
   const isPopoverOpen = activePopover !== null;
 
   useEffect(() => {
-    if (chatId) {
-      const currentChatData = chats.find(c => c.id === chatId.id);
+    const CID = (routeId && routeId !== "new" ? routeId : (newChatIdRef.current || chatId?.id || newChatId))
+    if (CID) {
+      const currentChatData = chats.find(c => c.id === CID);
       if (currentChatData) {
         setActiveChatTokenUsage({
           prompt: currentChatData.prompt_tokens || 0,
@@ -253,10 +257,11 @@ const AnalyticAssistant = () => {
 
   useEffect(() => {
     // If an ID comes from the URL, that is our source of truth.
-    if (routeId && routeId !== "new") {
-      if (routeId !== chatId?.id) {
-        setChatId({ id: routeId, from: 'history' });
-        loadMessagesForChat(routeId);
+    const CID = (routeId && routeId !== "new" ? routeId : (newChatIdRef.current || chatId?.id || newChatId))
+    if (CID && routeId !== "new") {
+      if (routeId !== CID || messages.length < 1) {
+        setChatId({ id: CID, from: 'history' });
+        loadMessagesForChat(CID);
       }
       setIsFirstMessage(false);
     } else {
@@ -285,7 +290,7 @@ const AnalyticAssistant = () => {
     };
     // eslint-disable-next-line
   }, [setTitle, setShowBack, router]);
-  
+
   useFocusEffect(
     useCallback(() => {
       setTitle("Analytic Assistant");
@@ -342,18 +347,23 @@ const AnalyticAssistant = () => {
   }, [session, settings]);
 
   const handleSubmitLogic = () => {
-    const submissionChatId = (chatId?.id && chatId?.id !== "new") ? chatId?.id : newChatId;
-    if (!chatId) {
+    const CID = (routeId && routeId !== "new" ? routeId : (newChatIdRef.current || chatId?.id || newChatId))
+    const submissionChatId = (chatId?.id && chatId?.id !== "new") ? CID : newChatId;
+
+    console.log("hii", CID, "submissionChatId", submissionChatId)
+    if (!chatId && submissionChatId) {
+      console.log("changeto submissionChatId", submissionChatId)
       router.replace(`/analyticassistant/${submissionChatId}`);
       setChatId({ id: submissionChatId, from: 'newChat' });
     }
     setCurrentChatId(submissionChatId)
+    setSuggestions([])
 
     // The user message is already in the `messages` array via `useChat`
     // We just need to ensure the correct ID is sent.
     handleSubmit(undefined, {
       body: {
-        chatId: submissionChatId,
+        chatId: submissionChatId || CID,
         settings
       }
     });
@@ -536,25 +546,11 @@ const AnalyticAssistant = () => {
       });
     }
 
-    // const idx = messages.findIndex(m => m.id === id);
-    // if (idx > 0) {
-    //   // Find the previous user message before the favorite message
-    //   for (let i = idx - 1; i >= 0; i--) {
-    //     if (messages[i].role === "user") {
-    //       append({
-    //         role: "user",
-    //         content: messages[i].content,
-    //       });
-    //       break;
-    //     }
-    //   }
-    // }
-    // Optionally close the popover
     setActivePopover(null);
   }, [messages, append]);
 
   const handleAudioSubmit = (audioBase64: string, mimeType: string) => {
-    const submissionChatId = (newChatIdRef.current || chatId?.id || newChatId || routeId);
+    const submissionChatId = (routeId && routeId !== "new" ? routeId : (newChatIdRef.current || chatId?.id || newChatId))
 
     append({
       role: "user",
@@ -587,8 +583,8 @@ const AnalyticAssistant = () => {
   };
 
   const handleTextSubmitLogic = (message: string) => {
-    const submissionChatId = (newChatIdRef.current || chatId?.id || newChatId || routeId);
-
+    const submissionChatId = (routeId && routeId !== "new" ? routeId : (newChatIdRef.current || chatId?.id || newChatId))
+    setSuggestions([])
     append(
       {
         role: "user",
@@ -610,6 +606,14 @@ const AnalyticAssistant = () => {
     }
     setCurrentChatId(submissionChatId)
   };
+
+  const errorMessage = useMemo(() => {
+    if (!error || !error.message) return ""
+    if (error.message.includes("exceeded your current quota")) return "You exceeded your current quota"
+    if (error.message.includes("overloaded")) return "The model is overloaded. Please try again later."
+
+    return "I tried to get the response But there is issue on query to get result. try again."
+  }, [error])
 
   return (
     <Animated.View
@@ -636,34 +640,28 @@ const AnalyticAssistant = () => {
         </View>
         <View className="flex-row items-center">
           <Popover
-          // onOpenChange={(isOpen) => {
-          //   if (!isOpen) {
-          //     setActivePopover(null);
-          //     popoverTriggerRef?.current?.close()
-          //   }
-          // }}
           >
             <View className='flex flex-row items-center'>
               <Pressable onPress={() => handlePopoverOpen('tokens')} className="mr-3">
-                <LucideIcon name="Coins" size={16} className="text-foreground" />
+                <LucideIcon name="Coins" size={16} className="text-primary" />
               </Pressable>
               <Pressable onPress={() => handlePopoverOpen('history')} className="mr-3">
-                <LucideIcon name="History" size={16} className="text-foreground" />
+                <LucideIcon name="History" size={16} className="text-primary" />
               </Pressable>
               <PopoverTrigger ref={popoverTriggerRef} asChild>
                 <View />
               </PopoverTrigger>
               <Pressable onPress={() => handlePopoverOpen('bookmarks')} className="mr-3">
-                <LucideIcon name="Bookmark" size={16} className="text-foreground" />
+                <LucideIcon name="Bookmark" size={16} className="text-primary" />
               </Pressable>
               <Pressable onPress={() => handlePopoverOpen('favorites')} className="mr-3">
-                <LucideIcon name="Heart" size={16} className="text-foreground" />
+                <LucideIcon name="Heart" size={16} className="text-primary" />
               </Pressable>
               <Pressable onPress={() => handlePopoverOpen('prompts')} className="mr-3">
-                <LucideIcon name="Sparkles" size={16} className="text-foreground" />
+                <LucideIcon name="Sparkles" size={16} className="text-primary" />
               </Pressable>
               <Pressable onPress={handleNewChat} className="mr-2">
-                <LucideIcon name="MessageCirclePlus" size={16} className="text-foreground" />
+                <LucideIcon name="MessageCirclePlus" size={16} className="text-primary" />
               </Pressable>
             </View>
             <PopoverContent
@@ -725,14 +723,15 @@ const AnalyticAssistant = () => {
             onMessageLayout={handleMessageLayout}
           />
         )}
-        {/* <Text>status : {status}, error : {error?.message}</Text> */}
+
         {error && (
           <View className="flex-row items-center self-center justify-center space-x-3 rounded-lg bg-red-100 p-3 my-4 mx-4">
             <View className="flex-1">
               <Text className="text-sm font-semibold text-red-700">Request Failed</Text>
               <Text className="text-xs text-red-600 mt-1">
                 {/* A user-friendly message */}
-                There was an issue processing your request. {error.message && ` : ${error.message}`}
+                {/* There was an issue processing your request. {error.message && ` : ${error.message}`} */}
+                {errorMessage}
               </Text>
             </View>
             <Pressable onPress={handleRetry} className="bg-red-600 p-2 rounded-full">
@@ -741,7 +740,7 @@ const AnalyticAssistant = () => {
           </View>
         )}
         {showAiThinking &&
-          <View className="flex-row px-4">
+          <View className="flex-row px-4 items-center">
             <View
               className={
                 "mr-2 mt-1 h-8 w-8 items-center justify-center rounded-full bg-gray-200"
@@ -749,8 +748,9 @@ const AnalyticAssistant = () => {
             >
               <Text className="text-base">{"🤖"}</Text>
             </View>
-            <View className="-ml-2 -mt-[1px]">
-              <LottieLoader width={40} height={40} />
+            <View className="-ml-2">
+              {/* <LottieLoader width={40} height={40} /> */}
+              <Text className="text-base ml-2 ">Waiting for response</Text>
             </View>
           </View>
         }

@@ -1,8 +1,9 @@
 import MobileAuth from "@/components/auth/MobileAuth";
 import { SafeAreaView } from "@/components/safe-area-view";
 import { useAuth } from "@/context/supabase-provider";
-import { handleApiError, handleApiSuccess, showToast as globalShowToast} from "@/lib/toast-utils";
+import { handleApiError, handleApiSuccess, showToast as globalShowToast } from "@/lib/toast-utils";
 import { supabase } from "@/config/supabase";
+import { email } from "zod";
 
 export default function LoginPage() {
     const { signIn, setSession } = useAuth();
@@ -60,8 +61,25 @@ export default function LoginPage() {
                 data: { full_name: name }
             });
 
+            const { error: updateUserCatalogError } = await supabase
+                .from('user_catalog')
+                .update({
+                    created_user_name: user_email,
+                    user_name: user_email,
+                    // business_number aready auto sync with sync_user_to_catalog PG function  
+                    business_name: null,
+                    for_business_number: user_email,
+                    for_business_name: null
+                })
+                .eq('user_id', session.user.id)
+
             if (updateUserError) {
                 showToast(updateUserError.message || "Could not save user information.", "error");
+                return false;
+            }
+
+            if (updateUserCatalogError) {
+                showToast(updateUserCatalogError.message || "Could not update user information.", "error");
                 return false;
             }
         }

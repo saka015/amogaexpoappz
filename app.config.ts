@@ -116,7 +116,16 @@ export default () => {
 					"supportsPictureInPicture": true
 				}
 			],
-			"expo-font"
+			"expo-font",
+			[
+				"@sentry/react-native/expo",
+				{
+					"url": "https://sentry.io/",
+					"note": "Use SENTRY_AUTH_TOKEN env to authenticate with Sentry.",
+					"project": "storchat",
+					"organization": "storchat"
+				}
+			]
 		],
 		"owner": "tahabou",
 		"extra": {

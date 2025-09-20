@@ -56,7 +56,7 @@ export default function RoleMenu() {
 								<CardContent className="p-0">
 									<H4 className="text-primary mb-1">👋 Welcome back, {userCatalog?.first_name}!</H4>
 									<Text className="text-sm leading-tight">
-										Here's a quick overview of your dashboard. Explore your pages or manage your content below.
+										Use menu to access respective page
 									</Text>
 								</CardContent>
 							</Card>
@@ -80,10 +80,9 @@ export default function RoleMenu() {
 							</View>
 
 							<View className="flex flex-row flex-wrap items-center gap-2 mb-4">
-								<H3 className="font-semibold text-base"><Text>Available pages</Text></H3>
-								<Badge variant="secondary" className="text-xs">
-									<Text>{filteredPages.length} items</Text>
-								</Badge>
+								<View className="border-transparent bg-secondary web:hover:opacity-80 active:opacity-80 items-center rounded-full border border-border px-2.5 py-0.5">
+									<Text className="font-semibold text-base">{filteredPages.length} items</Text>
+								</View>
 							</View>
 							<View className="flex flex-row flex-wrap -mx-1">
 								{filteredPages.map((page, index) => (

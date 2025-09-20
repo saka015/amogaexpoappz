@@ -11,15 +11,13 @@ import { Button } from '@/components/elements/Button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/elements/Tabs';
 import { expoFetchWithAuth, generateAPIUrl } from '@/lib/utils';
 import { useAuth } from '@/context/supabase-provider';
-import { handleApiError, handleApiSuccess } from '@/lib/toast-utils';
+import { handleApiError, handleApiSuccess, showToast } from '@/lib/toast-utils';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/elements/SelectDropdown';
 import { PROVIDER_MODELS } from '@/lib/ai/utils';
 import { useHeader } from '@/context/header-context';
 
 const storeFormSchema = z.object({
-	business_name: z.string().readonly().nullish(),
 	legal_business_name: z.string().nullish(),
-	business_number: z.string().readonly().nullish(),
 	business_registration_no: z.string().readonly().nullish(),
 	store_name: z.string().min(3, 'Store name must be at least 3 characters long.'),
 	store_url: z.url('Must be a valid URL.'),
@@ -31,7 +29,6 @@ const wooCommerceFormSchema = z.object({
 	url: z.string().url('WooCommerce URL must be a valid URL.'),
 	consumerKey: z.string().startsWith('ck_', 'Must be a valid Consumer Key.'),
 	consumerSecret: z.string().startsWith('cs_', 'Must be a valid Consumer Secret.'),
-	pluginAuthKey: z.string().min(3, 'Must enter the plugin Auth key.'),
 });
 
 const aiFormSchema = z.object({
@@ -54,7 +51,7 @@ const StoreSettingsForm = ({ defaultValues, onSave }: { defaultValues: any; onSa
 
 	const onSubmit = async (data: z.infer<typeof storeFormSchema>) => {
 		setIsSaving(true);
-		await onSave(data);
+		await onSave({ ...data, for_business_name: data.store_name, business_name: data.store_name });
 		setIsSaving(false);
 	};
 
@@ -64,23 +61,9 @@ const StoreSettingsForm = ({ defaultValues, onSave }: { defaultValues: any; onSa
 				<View className="space-y-4">
 					<FormField
 						control={form.control}
-						name="business_name"
-						render={({ field }) => (
-							<FormInput formItemClassName='mt-1' label="Business Name" placeholder="Your Company LLC" {...field} readOnly value={field.value || ''} />
-						)}
-					/>
-					<FormField
-						control={form.control}
 						name="legal_business_name"
 						render={({ field }) => (
 							<FormInput formItemClassName='mt-1' label="Legal Business Name" placeholder="" {...field} value={field.value || ''} />
-						)}
-					/>
-					<FormField
-						control={form.control}
-						name="business_number"
-						render={({ field }) => (
-							<FormInput formItemClassName='mt-1' label="Business Number" placeholder="" {...field} readOnly value={field.value || ''} />
 						)}
 					/>
 					<FormField
@@ -154,16 +137,62 @@ const WooCommerceSettingsForm = ({
 	onSave: (data: any) => Promise<any>;
 }) => {
 	const [isSaving, setIsSaving] = useState(false);
+	const [isTesting, setIsTesting] = useState(false);
+	const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
+
 	const form = useForm<z.infer<typeof wooCommerceFormSchema>>({
 		resolver: zodResolver(wooCommerceFormSchema),
 		defaultValues,
 	});
 
+	const formValues = form.watch();
+	useEffect(() => {
+		setTestResult(null);
+	}, [JSON.stringify(formValues)]);
+
 	useEffect(() => {
 		form.reset(defaultValues);
 	}, [defaultValues, form]);
 
+	const handleTestConnection = async () => {
+		setIsTesting(true);
+		setTestResult(null);
+		// Get the current values from the form
+		const values = form.getValues();
+		try {
+			const res = await fetch(generateAPIUrl('/api/woocommerce/test'), {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(values),
+			});
+			const result = await res.json();
+
+			if (!res.ok) {
+				setTestResult({ success: false, message: result.error || "An unknown error occurred." });
+			} else {
+				setTestResult({ success: true, message: result.message || "Connection successful!" });
+			}
+		} catch (error: any) {
+			setTestResult({ success: false, message: "A network error occurred." });
+		} finally {
+			setIsTesting(false);
+		}
+	};
+
 	const onSubmit = async (data: z.infer<typeof wooCommerceFormSchema>) => {
+		setIsTesting(true);
+		const testResponse = await fetch(generateAPIUrl('/api/woocommerce/test'), {
+			method: 'POST',
+			body: JSON.stringify(data),
+		});
+		setIsTesting(false);
+
+		if (!testResponse.ok) {
+			const result = await testResponse.json();
+			showToast("Save Failed", "error", `Connection test failed: ${result.error}`);
+			return; // Stop the save if the test fails
+		}
+
 		setIsSaving(true);
 		await onSave(data);
 		setIsSaving(false);
@@ -199,13 +228,32 @@ const WooCommerceSettingsForm = ({
 						<FormInput formItemClassName='mt-1' label="Consumer Secret" placeholder="cs_xxxxxxxxxx" secureTextEntry {...field} />
 					)}
 				/>
-				<FormField
-					control={form.control}
-					name="pluginAuthKey"
-					render={({ field }) => (
-						<FormInput formItemClassName='mt-1' label="Plugin AuthKey" placeholder="...." secureTextEntry {...field} />
+				<View className="flex flex-col items-center gap-4 mt-4">
+					<Button
+						onPress={handleTestConnection}
+						disabled={isTesting}
+						variant="outline"
+						className="flex flex-row items-center w-full"
+					>
+						{isTesting ? (
+							<ActivityIndicator color="white" className="mr-2" />
+						) : null}
+						<Text>Test Connection</Text>
+					</Button>
+
+					{testResult && (
+						<View className="flex-row items-center flex-1">
+							{testResult.success ? (
+								<CheckCircle size={16} className="text-green-500 mr-2" />
+							) : (
+								<AlertCircle size={16} className="text-destructive mr-2" />
+							)}
+							<Text className={`text-sm font-medium ${testResult.success ? 'text-green-600' : 'text-destructive'}`}>
+								{testResult.message}
+							</Text>
+						</View>
 					)}
-				/>
+				</View>
 				<Button onPress={form.handleSubmit(onSubmit)} disabled={isSaving} className="flex flex-row items-center justify-center mt-2">
 					{isSaving ? <ActivityIndicator color="white" className="mr-2" /> : null}
 					<Text>Save WooCommerce Settings</Text>
@@ -217,6 +265,8 @@ const WooCommerceSettingsForm = ({
 
 const AISettingsForm = ({ defaultValues, onSave }: { defaultValues: any; onSave: (data: any) => Promise<any> }) => {
 	const [isSaving, setIsSaving] = useState(false);
+	const [isTesting, setIsTesting] = useState(false);
+	const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
 	const [search, setSearch] = useState('');
 	const [customModel, setCustomModel] = useState('');
 	const providers = Object.keys(PROVIDER_MODELS);
@@ -230,6 +280,11 @@ const AISettingsForm = ({ defaultValues, onSave }: { defaultValues: any; onSave:
 			apiKey: defaultValues?.apiKey || '',
 		},
 	});
+
+	const formValues = form.watch();
+	useEffect(() => {
+		setTestResult(null);
+	}, [JSON.stringify(formValues)]);
 
 	useEffect(() => {
 		form.reset({
@@ -252,6 +307,31 @@ const AISettingsForm = ({ defaultValues, onSave }: { defaultValues: any; onSave:
 		if (customModel.trim()) {
 			form.setValue('model', customModel.trim());
 			triggerRef.current?.close();
+		}
+	};
+
+	const handleTestConnection = async () => {
+		setIsTesting(true);
+		setTestResult(null);
+		// Get the current values from the form to test them
+		const values = form.getValues();
+		try {
+			const res = await fetch(generateAPIUrl('/api/ai/test'), {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(values),
+			});
+			const result = await res.json();
+
+			if (!res.ok) {
+				setTestResult({ success: false, message: result.error || "An unknown error occurred." });
+			} else {
+				setTestResult({ success: true, message: result.message || "Connection successful!" });
+			}
+		} catch (error: any) {
+			setTestResult({ success: false, message: "A network error occurred." });
+		} finally {
+			setIsTesting(false);
 		}
 	};
 
@@ -390,6 +470,34 @@ const AISettingsForm = ({ defaultValues, onSave }: { defaultValues: any; onSave:
 						<FormInput formItemClassName='mt-1' label="API Key" placeholder="sk-xxxxxxxxxx" secureTextEntry {...field} />
 					)}
 				/>
+
+				<View className="flex flex-col items-center gap-4 mt-4">
+					<Button
+						onPress={handleTestConnection}
+						disabled={isTesting || !form.getValues('apiKey')}
+						variant="outline"
+						className="flex flex-row items-center w-full"
+					>
+						{isTesting ? (
+							<ActivityIndicator color="white" className="mr-2" />
+						) : null}
+						<Text>Test AI Connection</Text>
+					</Button>
+
+					{testResult && (
+						<View className="flex-row items-center flex-1">
+							{testResult.success ? (
+								<CheckCircle size={16} className="text-green-500 mr-2" />
+							) : (
+								<AlertCircle size={16} className="text-destructive mr-2" />
+							)}
+							<Text className={`text-sm font-medium ${testResult.success ? 'text-green-600' : 'text-destructive'}`}>
+								{testResult.message}
+							</Text>
+						</View>
+					)}
+				</View>
+
 				<Button onPress={form.handleSubmit(onSubmit)} disabled={isSaving} className="flex flex-row items-center justify-center mt-2">
 					{isSaving ? <ActivityIndicator color="white" className="mr-2" /> : null}
 					<Text>Save AI Settings</Text>

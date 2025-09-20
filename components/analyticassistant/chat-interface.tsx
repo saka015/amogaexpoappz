@@ -151,7 +151,7 @@ export function ToolStatusIndicator({ toolName, state, result }: ToolStatusIndic
     return (
       <View className="flex-row items-center rounded-lg bg-muted/50 p-3 my-2 self-start ml-4">
         <ActivityIndicator size="small" color="#6b7280" />
-        <Text className="text-sm font-medium text-gray-600 ml-3">{displayName}...</Text>
+        <Text className="text-sm font-medium text-gray-600 ml-3">Thinking...</Text>
       </View>
     );
   }
@@ -166,7 +166,7 @@ export function ToolStatusIndicator({ toolName, state, result }: ToolStatusIndic
     return (
       <View
         className={cn(
-          "flex-row items-center rounded-lg p-3 mt-2 self-start ml-4",
+          "flex-row items-center rounded-lg p-3 mt-1 self-start ml-4",
           isError ? "bg-red-100" : "bg-card"
         )}
       >
@@ -182,7 +182,7 @@ export function ToolStatusIndicator({ toolName, state, result }: ToolStatusIndic
               isError ? "text-red-700" : "text-green-700"
             )}
           >
-            {displayName} {isError ? "Failed" : "Complete"}
+           {isError ? "Response Fail" : "Response Success"}
           </Text>
           {isError && result.error && (
             <Text className="text-xs text-red-600 mt-1 max-w-xs">{result.error}</Text>

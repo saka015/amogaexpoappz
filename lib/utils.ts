@@ -94,7 +94,6 @@ export async function uploadAttachmentToSupabase(localPath: string, fileName: st
 			const response = await fetch(localPath);
 			fileBlob = await response.arrayBuffer();
 		}
-		console.log("filedata", fileBlob, fileName, contentType);
 
 		const { data, error } = await supabase.storage
 			.from(bucketName)

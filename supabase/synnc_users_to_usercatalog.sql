@@ -53,6 +53,6 @@ $$;
 drop trigger if exists trigger_sync_user_to_catalog on auth.users;
 
 create trigger trigger_sync_user_to_catalog
--- after insert or update on auth.users
-after insert on auth.users  -- ❗ Only INSERT, no UPDATE
+after insert or update on auth.users
+-- after insert on auth.users  -- ❗ Only INSERT, no UPDATE
 for each row execute procedure public.sync_user_to_catalog();

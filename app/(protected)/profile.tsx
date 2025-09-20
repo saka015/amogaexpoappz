@@ -17,6 +17,7 @@ import { handleApiError, handleApiSuccess } from '@/lib/toast-utils';
 import { z } from 'zod';
 import { useHeader } from '@/context/header-context';
 import { useFocusEffect } from 'expo-router';
+import { useImagePicker } from '@/hooks/useImagePicker';
 
 export const profileSchema = z.object({
     first_name: z.string().min(1, "First name is required"),
@@ -70,10 +71,15 @@ const ProfileSkeleton = () => (
 );
 
 export default function ProfilePage() {
-    const { userCatalog } = useAuth();
+    const { userCatalog, refreshAuthData } = useAuth();
     const { setTitle, setShowBack } = useHeader()
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const { pickImage, uploadImage } = useImagePicker();
+    const [newProfilePic, setNewProfilePic] = useState<string | null>(null);
+    const fullName = (userCatalog?.first_name || "fl").toString().trim();
+    const [firstName, lastNameRaw] = fullName.split(" ");
+    const lastName = lastNameRaw ? lastNameRaw : firstName.slice(1, 3);
 
     // This state will hold the full, non-editable user data
     const [fullProfile, setFullProfile] = useState<any>(null);
@@ -136,6 +142,36 @@ export default function ProfilePage() {
         }, [setTitle, setShowBack])
     );
 
+    const handlePickProfileImage = async () => {
+        const uris = await pickImage();
+        if (uris && uris.length > 0) {
+            const selectedUri = uris[0];
+            setNewProfilePic(selectedUri);
+            if (!userCatalog?.user_catalog_id) return;
+            setIsSaving(true);
+            try {
+                const uploadedUrl = await uploadImage(selectedUri, 'profile-pics');
+                if (uploadedUrl) {
+                    await supabase
+                        .from('user_catalog')
+                        .update({
+                            profile_pic_url: uploadedUrl,
+                            updated_at: new Date().toISOString(),
+                        })
+                        .eq('user_catalog_id', userCatalog.user_catalog_id);
+                    handleApiSuccess('Profile picture updated!');
+                    setFullProfile((prev: any) => ({ ...prev, profile_pic_url: uploadedUrl }));
+                    setNewProfilePic(null);
+                    if (refreshAuthData) await refreshAuthData({ userCatalog: true });
+                }
+            } catch (error: any) {
+                handleApiError(error, 'Failed to update profile picture');
+            } finally {
+                setIsSaving(false);
+            }
+        }
+    };
+
     const onSubmit = async (formData: ProfileFormData) => {
         if (!userCatalog?.user_catalog_id) return;
         setIsSaving(true);
@@ -144,7 +180,6 @@ export default function ProfilePage() {
                 .from('user_catalog')
                 .update({
                     first_name: formData.first_name,
-                    last_name: formData.last_name,
                     // Note: We don't update email here as it's read-only
                     business_name: formData.business_name,
                     business_address_1: formData.business_address_1,
@@ -158,12 +193,13 @@ export default function ProfilePage() {
                 .eq('user_catalog_id', userCatalog.user_catalog_id);
 
             if (error) throw error;
-
-            handleApiSuccess("Profile updated successfully!");
-            // Refetch the data to get the latest version and reset the form's "dirty" state
-            await fetchProfile();
+            handleApiSuccess('Profile updated successfully!');
+            setFullProfile((prev: any) => ({
+                ...prev,
+                ...formData,
+            }));
         } catch (error: any) {
-            handleApiError(error, "Failed to update profile");
+            handleApiError(error, 'Failed to update profile');
         } finally {
             setIsSaving(false);
         }
@@ -185,12 +221,17 @@ export default function ProfilePage() {
         <SafeAreaView className="flex-1 bg-background">
             <ScrollView contentContainerClassName="p-4">
                 <View className="items-center mb-6">
-                    <Avatar alt="Profile Picture" className="w-24 h-24 mb-2">
-                        <AvatarImage source={{ uri: fullProfile.profile_pic_url }} />
-                        <AvatarFallback>
-                            <Text className="text-3xl">{fullProfile.first_name?.[0]}{fullProfile.last_name?.[0]}</Text>
-                        </AvatarFallback>
-                    </Avatar>
+                    <View className='flex justify-center items-center'>
+                        <Avatar alt="Profile Picture" className="w-24 h-24">
+                            <AvatarImage source={{ uri: fullProfile.profile_pic_url }} />
+                            <AvatarFallback>
+                                <Text className="text-3xl">{firstName?.[0]}{lastName?.[0]}</Text>
+                            </AvatarFallback>
+                        </Avatar>
+                        <Button size="sm" className="mt-2 mb-2" onPress={handlePickProfileImage}>
+                            <Text>{newProfilePic ? 'Change' : (fullProfile.profile_pic_url ? 'Change' : 'Add')} Photo</Text>
+                        </Button>
+                    </View>
                     <Text className="text-2xl font-bold text-foreground">{fullProfile.first_name} {fullProfile.last_name}</Text>
                     <Text className="text-muted-foreground">{fullProfile.user_mobile}</Text>
                 </View>
@@ -203,12 +244,7 @@ export default function ProfilePage() {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <Controller control={control} name="first_name" render={({ field: { onChange, onBlur, value } }) => (
-                                <FormField label="First Name" error={errors.first_name}>
-                                    <Input value={value} onChangeText={onChange} onBlur={onBlur} />
-                                </FormField>
-                            )} />
-                            <Controller control={control} name="last_name" render={({ field: { onChange, onBlur, value } }) => (
-                                <FormField label="Last Name" error={errors.last_name}>
+                                <FormField label="Full Name" error={errors.first_name}>
                                     <Input value={value} onChangeText={onChange} onBlur={onBlur} />
                                 </FormField>
                             )} />
@@ -217,6 +253,9 @@ export default function ProfilePage() {
                                     <Input value={value} editable={false} className="bg-muted" />
                                 </FormField>
                             )} />
+                            <FormField label="Role" error={null}>
+                                <Input value={(userCatalog.roles_json || []).join(", ")} editable={false} className="bg-muted" />
+                            </FormField>
                             <FormField label="Account Status" error={null}>
                                 <Input value={fullProfile.status || 'N/A'} editable={false} className="bg-muted" />
                             </FormField>

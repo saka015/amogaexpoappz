@@ -16,6 +16,7 @@ import { expoFetchWithAuth, extractParamsFromQuery, extractParamsFromUrl, genera
 import type { Dispatch, SetStateAction } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useGeistFont } from "@/hooks/useGeistFont";
+import * as Sentry from '@sentry/react-native';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -34,6 +35,7 @@ interface AuthState {
 	allowedPaths: string[];
 	storeSettings: { store: Record<string, string>; woocommerce: { url: string; consumerKey: string; consumerSecret: string; pluginAuthKey: string }; ai: { provider: string; apiKey: string; model?: string } } | null;
 	isFetchingUserInfo: boolean;
+	isFetchingStoreSettings: boolean;
 	refreshUserDataAndSettings: () => Promise<void>;
 	signUp: (email: string, password: string) => Promise<boolean | { user: User | null; session: Session | null; }>;
 	signIn: (email: string, password: string) => Promise<boolean | { user: User; session: Session; weakPassword?: WeakPassword }>;
@@ -44,6 +46,7 @@ interface AuthState {
 		refresh_token: string;
 	}) => Promise<void>;
 	setSession: Dispatch<SetStateAction<Session | null>>;
+	refreshAuthData?: (options?: { userCatalog?: boolean; allowedPages?: boolean; storeSettings?: boolean }) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthState>({
@@ -55,6 +58,7 @@ export const AuthContext = createContext<AuthState>({
 	allowedPaths: [],
 	storeSettings: null,
 	isFetchingUserInfo: false,
+	isFetchingStoreSettings: false,
 	refreshUserDataAndSettings: async () => { },
 	signUp: async () => false,
 	signIn: async () => false,
@@ -82,6 +86,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 	}[]>([]);
 	const [isFetchingUserInfo, setIsFetchingUserInfo] = useState(false);
 	const [storeSettings, setSettings] = useState<any | null>(null);
+	const [isFetchingStoreSettings, setIsFetchingStoreSettings] = useState(false);
 
 	const router = useRouter();
 	const pathname = usePathname();
@@ -122,6 +127,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 	};
 
 	const loadStoreSettings = async () => {
+		setIsFetchingStoreSettings(true);
 		try {
 			const res = await expoFetchWithAuth(session)(generateAPIUrl('/api/store-settings'));
 			const data = await res.json();
@@ -130,6 +136,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
 		} catch (error: any) {
 			console.error("Failed to load settings:", error);
 			setSettings(null);
+		} finally {
+			setIsFetchingStoreSettings(false);
 		}
 	};
 
@@ -234,6 +242,19 @@ export function AuthProvider({ children }: PropsWithChildren) {
 		await AsyncStorage.clear();
 	};
 
+	const refreshAuthData = useCallback(async (options?: { userCatalog?: boolean; allowedPages?: boolean; storeSettings?: boolean }) => {
+		if (!session?.user) return;
+		const toRefresh = options || {};
+		const promises = [];
+		if (toRefresh.userCatalog || toRefresh.allowedPages || Object.keys(toRefresh).length === 0) {
+			promises.push(fetchUserCatalogAndPermissions(session.user.id));
+		}
+		if (toRefresh.storeSettings || Object.keys(toRefresh).length === 0) {
+			promises.push(loadStoreSettings());
+		}
+		await Promise.all(promises);
+	}, [session]);
+
 	useEffect(() => {
 		supabase.auth.getSession().then(({ data: { session } }) => {
 			setSession(session);
@@ -299,6 +320,16 @@ export function AuthProvider({ children }: PropsWithChildren) {
 		}
 	}, [initialized, fontsLoaded])
 
+	useEffect(() => {
+		if (session && userCatalog) {
+			Sentry.setUser({
+				id: session.user.id,
+				email: session.user.email
+			})
+		} else {
+			Sentry.setUser(null);
+		}
+	}, [session, userCatalog])
 
 	return (
 		<AuthContext.Provider
@@ -316,8 +347,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
 				allowedPages,
 				allowedPaths,
 				isFetchingUserInfo,
+				isFetchingStoreSettings,
 				storeSettings,
-				refreshUserDataAndSettings
+				refreshUserDataAndSettings,
+				refreshAuthData
 			}}
 		>
 			{children}

@@ -6,7 +6,7 @@ import { Button } from '@/components/elements/Button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/elements/Card';
 import LucideIcon from '@/components/LucideIcon';
 import { useHeader } from '@/context/header-context';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 
 // Define the available colors and modes
 type Color = 'default' | 'mono' | 'claude' | 'vercel' | 'twitter' | 'supabase' | null;
@@ -22,7 +22,7 @@ const modes: Array<'system' | 'light' | 'dark'> = ['system', 'light', 'dark'];
 
 export default function ThemeSelectorPage() {
     const { mode, color, setMode, setColor, themeClass } = useTheme();
-    // const navigation = useNavigation();
+    const router = useRouter();
     const { setTitle, setShowBack } = useHeader()
 
     useEffect(() => {
@@ -65,7 +65,6 @@ export default function ThemeSelectorPage() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <Text>themeClass:{themeClass}</Text>
                             <View className="flex-row flex-wrap gap-2">
                                 {modes.map((m) => (
                                     <OptionButton
@@ -119,6 +118,12 @@ export default function ThemeSelectorPage() {
                             </View>
                         </CardContent>
                     </Card> */}
+
+                    <View className='flex flex-row justify-end mt-4'>
+                        <Button variant="default" onPress={() => { router.push("/") }} className='px-6'>
+                            <Text>Cancel</Text>
+                        </Button>
+                    </View>
                 </View>
             </ScrollView>
         </SafeAreaView>

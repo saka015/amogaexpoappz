@@ -217,7 +217,17 @@ export default function PromptsListPage() {
                 ({ error } = await supabase.from('prompts_list' as any).update(payload).eq('id', editingPrompt.id));
             } else {
                 // Create
-                ({ error } = await supabase.from('prompts_list' as any).insert({ ...payload, created_by: userCatalog.user_catalog_id }));
+                ({ error } = await supabase.from('prompts_list' as any)
+                    .insert({
+                        ...payload,
+                        created_by: userCatalog.user_catalog_id,
+                        created_user_id: userCatalog.user_catalog_id,
+                        created_user_name: userCatalog.created_user_name,
+                        business_number: userCatalog.business_number,
+                        for_business_number: userCatalog.for_business_number,
+                        business_name: userCatalog.business_name,
+                        for_business_name: userCatalog.for_business_name,
+                    }));
             }
             if (error) throw error;
 

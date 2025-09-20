@@ -686,7 +686,12 @@ export const createWooCommerceTools = (wooAPI: any | null) => ({
         ),
         execute: async ({ type, title, chartData, xAxisColumn, yAxisColumn, datasetLabel }) => {
             try {
-                const labelsArray = chartData.map((item: any) => item[xAxisColumn]);
+                // const labelsArray = chartData.map((item: any) => item[xAxisColumn]);
+                // Truncate X-axis labels to 25 characters for readability
+                const labelsArray = chartData.map((item: any) => {
+                    const label = item[xAxisColumn];
+                    return typeof label === 'string' ? label.slice(0, 25) : label;
+                });
                 const dataArray = chartData.map((item: any) => parseFloat(item[yAxisColumn])).filter((n: any) => !isNaN(n));
 
                 const config = createChartConfig({

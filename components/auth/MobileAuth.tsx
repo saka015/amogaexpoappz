@@ -95,7 +95,7 @@ const OtpVerificationScreen = ({ onVerify, onResend, goBack, loading, activeTab,
                 <CardDescription>A 6-digit code was sent to {email || emailOtp}</CardDescription>
             </CardHeader>
             <CardContent>
-                <View className="space-y-6">
+                <View>
                     <View>
                         <Label>Verification Code</Label>
                         <Input
@@ -107,10 +107,10 @@ const OtpVerificationScreen = ({ onVerify, onResend, goBack, loading, activeTab,
                             keyboardType="number-pad"
                         />
                     </View>
-                    <Button onPress={() => onVerify(otp)} disabled={otp.length !== 6 || loading}>
+                    <Button className='mt-3' onPress={() => onVerify(otp)} disabled={otp.length !== 6 || loading}>
                         {loading ? <ActivityIndicator color="white" /> : <Text className="text-primary-foreground font-bold">{activeTab === "signup" ? "Create Account" : "Sign In"}</Text>}
                     </Button>
-                    <View className="items-center">
+                    <View className="items-center mt-3">
                         {countdown > 0 ? (
                             <Text className="text-muted-foreground">Resend in {countdown}s</Text>
                         ) : (
@@ -205,7 +205,7 @@ export default function MobileAuth({ signIn, toast, verifySendOtp, verifyOtp }: 
 
     if (step === "otp") {
         return (
-            <View className="flex-1 items-center justify-center p-4">
+            <View className="flex-1 items-center justify-center p-3">
                 <OtpVerificationScreen
                     onVerify={submitVerifyOTP}
                     onResend={() => sendOTP(activeTab === "signup")}
@@ -226,31 +226,31 @@ export default function MobileAuth({ signIn, toast, verifySendOtp, verifyOtp }: 
         >
             <ScrollView
                 contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
-                className="p-4"
+                className="p-2"
                 keyboardShouldPersistTaps="handled"
             >
                 <Card className="w-full max-w-sm mx-auto shadow-lg">
 
-                    <CardHeader className="text-center space-y-4">
-                        <View className="p-1 pt-2 bg-card rounded-full mx-auto w-fit">
+                    <CardHeader className="text-center p-4">
+                        <View className="pt-1 bg-card rounded-full mx-auto w-fit">
                             <LucideIcon name='MessageCircle' className="h-6 w-6 text-blue-600" />
                         </View>
-                        <View className=" justify-center">
-                            <CardTitle className="text-xl text-center">Grow Store</CardTitle>
-                            <CardTitle className="text-md text-center">AI Assistant </CardTitle>
+                        <View className="justify-center">
+                            <CardTitle className="text-xl text-center">stor.chat</CardTitle>
+                            <CardTitle className="text-md text-center">Store AI Assistant</CardTitle>
                             <CardDescription className='text-center mt-1'>{activeTab === "signin" ? "Sign in to your account" : "Create an account to get started"}</CardDescription>
                         </View>
                     </CardHeader>
                     <CardContent>
-                        <View className="flex-row bg-muted p-1 rounded-lg mb-6">
+                        <View className="flex-row bg-muted p-1 rounded-lg mb-4">
                             {/* <TouchableOpacity onPress={() => { setActiveTab("signin"); resetForm(); }} className={`flex-1 p-2 rounded-md ${activeTab === 'signin' ? 'bg-background shadow' : ''}`}><Text className={`text-center font-semibold ${activeTab === 'signin' ? 'text-foreground' : 'text-muted-foreground'}`}>Login</Text></TouchableOpacity>
                             <TouchableOpacity onPress={() => { setActiveTab("signup"); resetForm(); }} className={`flex-1 p-2 rounded-md ${activeTab === 'signup' ? 'bg-background shadow' : ''}`}><Text className={`text-center font-semibold ${activeTab === 'signup' ? 'text-foreground' : 'text-muted-foreground'}`}>Get Started</Text></TouchableOpacity> */}
 
                             <TouchableOpacity onPress={() => setActiveTab("signin")} className={`flex-1`}>
-                                <Text className={`text-center font-semibold ${activeTab === 'signin' ? 'text-foreground bg-background shadow p-2 rounded-md' : 'text-muted-foreground p-2 rounded-md'}`}>Login</Text>
+                                <Text className={`text-center font-semibold ${activeTab === 'signin' ? 'text-foreground bg-background shadow p-1 rounded-md' : 'text-muted-foreground p-1 rounded-md'}`}>Login</Text>
                             </TouchableOpacity>
                             <TouchableOpacity onPress={() => setActiveTab("signup")} className={`flex-1`}>
-                                <Text className={`text-center font-semibold ${activeTab === 'signup' ? 'text-foreground bg-background shadow p-2 rounded-md' : 'text-muted-foreground p-2 rounded-md'}`}>Get Started</Text>
+                                <Text className={`text-center font-semibold ${activeTab === 'signup' ? 'text-foreground bg-background shadow p-1 rounded-md' : 'text-muted-foreground p-1 rounded-md'}`}>Get Started</Text>
                             </TouchableOpacity>
                         </View>
                         {activeTab === 'signin' ? (
@@ -260,7 +260,7 @@ export default function MobileAuth({ signIn, toast, verifySendOtp, verifyOtp }: 
                                     <Label>Email Address</Label>
                                     <Input placeholder="john@example.com" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" accessibilityLabel='signinEmail' />
                                 </View>
-                                <View className='mt-4'>
+                                <View className='mt-2'>
                                     <Label>Password</Label>
                                     <View className="relative">
                                         <Input placeholder="Enter your password" value={password} onChangeText={setPassword} secureTextEntry={!showPassword} accessibilityLabel='signinPassword' />
@@ -272,18 +272,18 @@ export default function MobileAuth({ signIn, toast, verifySendOtp, verifyOtp }: 
                                             : ""}
                                     </Text>
                                 </View>
-                                <Button onPress={signInWithPassword} disabled={loading} accessibilityLabel='signin' className='flex flex-row mt-4'>
+                                <Button onPress={signInWithPassword} disabled={loading} accessibilityLabel='signin' className='flex flex-row mt-2'>
                                     {loading ? <ActivityIndicator /> : <LucideIcon name='Lock' className="mr-2 text-primary-foreground" size={15} />}
                                     <Text className="text-primary-foreground font-bold">Login</Text>
                                 </Button>
                                 {/* Separator */}
-                                <View className="flex-row items-center my-4"><View className="flex-1 h-px bg-border" /><Text className="mx-4 text-muted-foreground">OR</Text><View className="flex-1 h-px bg-border" /></View>
+                                <View className="flex-row items-center my-2"><View className="flex-1 h-px bg-border" /><Text className="mx-4 text-muted-foreground text-sm">OR</Text><View className="flex-1 h-px bg-border" /></View>
                                 {/* OTP Form */}
                                 <View>
                                     <Label>Email Address</Label>
                                     <Input placeholder="john@example.com" value={emailOtp} onChangeText={setEmailOtp} keyboardType="email-address" autoCapitalize="none" accessibilityLabel='signinOtpEmail' />
                                 </View>
-                                <View className="bg-card p-2 rounded-lg border border-blue-200 my-4">
+                                <View className="bg-card p-2 rounded-lg border border-blue-200 my-2">
                                     <View className="flex flex-row items-center gap-2">
                                         <LucideIcon name="Shield" size={16} className=" text-blue-600" />
                                         <Text className="text-sm font-medium text-primary">OTP Verification</Text>
@@ -301,10 +301,10 @@ export default function MobileAuth({ signIn, toast, verifySendOtp, verifyOtp }: 
                                 <View className=''>
                                     <Label>Full Name</Label><Input placeholder="John Doe" value={name} onChangeText={setName} accessibilityLabel='registerFullName' />
                                 </View>
-                                <View className='mt-4'>
+                                <View className='mt-2'>
                                     <Label>Email Address</Label><Input placeholder="john@example.com" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" accessibilityLabel='registerEmail' />
                                 </View>
-                                <View className='mt-4'>
+                                <View className='mt-2'>
                                     <Label>Password</Label>
                                     <View className="relative">
                                         <Input placeholder="Minimum 8 characters" value={password} onChangeText={setPassword} secureTextEntry={!showPassword} accessibilityLabel='registerPassword' />
@@ -312,7 +312,7 @@ export default function MobileAuth({ signIn, toast, verifySendOtp, verifyOtp }: 
                                     </View>
                                     {isPasswordInvalid() && <Text className="text-destructive text-xs mt-1">Password must be at least 8 characters</Text>}
                                 </View>
-                                <View className="bg-card p-2 rounded-lg border border-green-200 my-4">
+                                <View className="bg-card p-2 rounded-lg border border-green-200 my-2">
                                     <View className="flex flex-row items-center gap-2">
                                         <LucideIcon name='Shield' className="text-green-600" size={16} />
                                         <View className="text-sm font-medium">

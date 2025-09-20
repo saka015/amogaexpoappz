@@ -271,7 +271,7 @@ const ProductForm = ({
 
 export default function ProductsPage() {
     const router = useRouter()
-    const { session, storeSettings } = useAuth();
+    const { session, storeSettings, isFetchingStoreSettings } = useAuth();
     const [products, setProducts] = useState<Product[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isInitialLoading, setIsInitialLoading] = useState(true);
@@ -292,6 +292,7 @@ export default function ProductsPage() {
     });
 
     const wooApiClient = useMemo(() => {
+        if (isFetchingStoreSettings) return null
         if (!storeSettings?.woocommerce?.url || !storeSettings?.woocommerce?.consumerKey || !storeSettings?.woocommerce?.consumerSecret) {
             showDialog({
                 title: 'Configure WooCommerce Settings',
@@ -311,7 +312,7 @@ export default function ProductsPage() {
             return new WooCommerceAPIClient(storeSettings.woocommerce);
         }
         return null;
-    }, [storeSettings]);
+    }, [storeSettings, isFetchingStoreSettings]);
 
     useEffect(() => {
         setTitle("Products");

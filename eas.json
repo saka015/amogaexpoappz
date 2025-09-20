@@ -38,8 +38,7 @@
 				"image": "latest"
 			},
 			"env": {
-				"STAGE": "preview",
-				"EXPO_PUBLIC_API_URL": "https://demo.stor.chat"
+				"STAGE": "preview"
 			}
 		}
 	},

@@ -24,7 +24,7 @@ const toYYYYMMDD = (date: Date) => date.toISOString().split('T')[0];
 
 export default function StoreSalesDashboardPage() {
     const router = useRouter()
-    const { storeSettings } = useAuth();
+    const { storeSettings, isFetchingStoreSettings } = useAuth();
     const { themeClass } = useTheme()
     const [activeTab, setActiveTab] = useState('overview');
     const [isLoading, setIsLoading] = useState(true);
@@ -40,6 +40,7 @@ export default function StoreSalesDashboardPage() {
     const showDialog = useDialogStore((s) => s.showDialog);
 
     const wooApiClient = useMemo(() => {
+        if (isFetchingStoreSettings) return null
         if (!storeSettings?.woocommerce?.url || !storeSettings?.woocommerce?.consumerKey || !storeSettings?.woocommerce?.consumerSecret) {
             showDialog({
                 title: 'Configure WooCommerce Settings',
@@ -59,7 +60,7 @@ export default function StoreSalesDashboardPage() {
             return new WooCommerceAPIClient(storeSettings.woocommerce, '/wc-analytics/');
         }
         return null;
-    }, [storeSettings]);
+    }, [storeSettings, isFetchingStoreSettings]);
 
     useEffect(() => {
         setTitle("Store Sales Board");

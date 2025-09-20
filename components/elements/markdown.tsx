@@ -37,43 +37,43 @@ const Div = cssInterop(ExpoDiv, { className: "style" });
 
 const rules = {
   heading1: (node, children) => (
-    <H4 className="text-primary mb-4 mt-4 font-bold">{children}</H4>
+    <H4 className="text-foreground mb-4 mt-4 font-bold">{children}</H4>
   ),
   heading2: (node, children) => (
-    <H4 className="text-primary mb-4 mt-4 font-bold">{children}</H4>
+    <H4 className="text-foreground mb-4 mt-4 font-bold">{children}</H4>
   ),
   heading3: (node, children) => (
-    <P className="text-primary mb-2 mt-2 font-bold">{children}</P>
+    <P className="text-foreground mb-2 mt-2 font-bold">{children}</P>
   ),
   heading4: (node, children) => (
-    <P className="text-primary mb-2 mt-2 font-bold">{children}</P>
+    <P className="text-foreground mb-2 mt-2 font-bold">{children}</P>
   ),
   heading5: (node, children) => (
-    <P className="text-primary mb-2 mt-2 font-bold">{children}</P>
+    <P className="text-foreground mb-2 mt-2 font-bold">{children}</P>
   ),
   heading6: (node, children) => (
-    <P className="text-primary mb-2 mt-2 font-bold">{children}</P>
+    <P className="text-foreground mb-2 mt-2 font-bold">{children}</P>
   ),
   code: (node, children, parent) => {
     return parent.length > 1 ? (
-      <Pre className="text-primary mt-2 w-[80dvw] overflow-x-scroll rounded-lg bg-zinc-100 p-3 text-sm dark:bg-zinc-800 md:max-w-[500px]">
+      <Pre className="text-foreground mt-2 w-[80dvw] overflow-x-scroll rounded-lg bg-zinc-100 p-3 text-sm dark:bg-zinc-800 md:max-w-[500px]">
         <Code>{children}</Code>
       </Pre>
     ) : (
-      <Code className="text-primary rounded-md bg-zinc-100 px-1 py-0.5 text-sm dark:bg-zinc-800">
+      <Code className="text-foreground rounded-md bg-zinc-100 px-1 py-0.5 text-sm dark:bg-zinc-800">
         {children}
       </Code>
     );
   },
-  list_item: (node, children) => <Li className="text-primary py-1">{children}</Li>,
+  list_item: (node, children) => <Li className="text-foreground py-1">{children}</Li>,
   ordered_list: (node, children) => (
-    <Ol className="text-primary ml-4 list-outside list-decimal">{children}</Ol>
+    <Ol className="text-foreground ml-4 list-outside list-decimal">{children}</Ol>
   ),
   unordered_list: (node, children) => (
-    <Ul className="text-primary ml-4 list-outside list-decimal">{children}</Ul>
+    <Ul className="text-foreground ml-4 list-outside list-decimal">{children}</Ul>
   ),
   strong: (node, children) => (
-    <Strong className="text-primary font-semibold">{children}</Strong>
+    <Strong className="text-foreground font-semibold">{children}</Strong>
   ),
   link: (node, children) => (
     <A
@@ -86,14 +86,14 @@ const rules = {
     </A>
   ),
   text: (node) => {
-    return <Text className="text-primary">
+    return <Text className="text-foreground">
       {node.content}
     </Text>
     return node.content
-    return <P className="text-primary ">{node.content}</P>;
+    return <P className="text-foreground ">{node.content}</P>;
   },
   body: (node, children) => {
-    return <Div className="text-primary ">
+    return <Div className="text-foreground ">
       {children.map((child, index) => (
         <React.Fragment key={index}>{child}</React.Fragment>
       ))}

@@ -32,7 +32,6 @@ export function useImagePicker(): ImagePickerResult {
   };
 
   const uploadImage = async (uri: string, bucketName: string): Promise<string | null> => {
-    console.log("uri", uri)
     const isDataUri = uri.startsWith('data:');
     const isFileUri = uri.startsWith('file://');
 
