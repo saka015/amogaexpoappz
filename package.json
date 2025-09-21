@@ -6,7 +6,6 @@
 		"dev": "expo start",
 		"web": "expo start --web",
 		"android": "expo run:android",
-		"vercel-build": "npm install --legacy-peer-deps && expo export -p web",
 		"ios": "expo run:ios",
 		"lint": "eslint . --fix",
 		"generate-colors": "node ./scripts/generate-colors.js && eslint ./constants/colors.ts --fix",
@@ -24,7 +23,7 @@
 		"@expo/html-elements": "^0.12.5",
 		"@gorhom/bottom-sheet": "^5.1.8",
 		"@hookform/resolvers": "^5.1.1",
-"@lottiefiles/dotlottie-react": "^0.6.5",
+		"@lottiefiles/dotlottie-react": "^0.14.4",
 		"@opentelemetry/api": "1.9.0",
 		"@opentelemetry/auto-instrumentations-node": "^0.64.1",
 		"@opentelemetry/exporter-trace-otlp-http": "0.205.0",
@@ -126,7 +125,7 @@
 		"tailwindcss": "3",
 		"tailwindcss-animate": "^1.0.7",
 		"uuid": "^11.1.0",
-		"zod": "^3.25.76",
+		"zod": "^4.0.10",
 		"zustand": "^5.0.6"
 	},
 	"devDependencies": {
