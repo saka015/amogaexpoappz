@@ -13,8 +13,7 @@
 		"start": "node server.js",
 		"buildpre": "expo prebuild --platform android",
 		"deploy:android": "eas build --platform android --profile preview",
-		"deploy:androidtest": "eas build --platform android --profile build-and-maestro-test",
-		"vercel-build": "npm install --legacy-peer-deps && npm run build"
+		"deploy:androidtest": "eas build --platform android --profile build-and-maestro-test"
 	},
 	"dependencies": {
 		"@ai-sdk/google": "^1.2.22",
@@ -126,7 +125,7 @@
 		"tailwindcss": "3",
 		"tailwindcss-animate": "^1.0.7",
 		"uuid": "^11.1.0",
-		"zod": "^3.25.76",
+		"zod": "^4.0.10",
 		"zustand": "^5.0.6"
 	},
 	"devDependencies": {
