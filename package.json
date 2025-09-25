@@ -16,7 +16,6 @@
 		"deploy:androidtest": "eas build --platform android --profile build-and-maestro-test"
 	},
 	"dependencies": {
-		"@ai-sdk/openai": "^1.3.23",
 		"@ai-sdk/react": "^1.2.12",
 		"@expo-google-fonts/geist": "^0.4.0",
 		"@expo/html-elements": "^0.12.5",
